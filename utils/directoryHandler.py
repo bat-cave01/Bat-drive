@@ -44,31 +44,6 @@ class Folder:
         self.upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.auth_hashes = []
 
-    def delete_file_folder(self, file_id_or_path):
-        """Recursively delete a file or folder inside this folder."""
-        # Direct match by ID
-        if file_id_or_path in self.contents:
-            del self.contents[file_id_or_path]
-            return True
-
-        # Match by path or name
-        for fid, fdata in list(self.contents.items()):
-            if hasattr(fdata, "path") and (
-                fdata.path == file_id_or_path or fdata.path.endswith("/" + file_id_or_path)
-            ):
-                del self.contents[fid]
-                return True
-
-            # Recurse into subfolders
-            if hasattr(fdata, "contents"):
-                try:
-                    if fdata.delete_file_folder(file_id_or_path):
-                        return True
-                except KeyError:
-                    continue
-
-        raise KeyError(f"File or folder '{file_id_or_path}' not found in this folder.")
-
 
 class File:
     def __init__(
@@ -244,56 +219,18 @@ class NewDriveData:
         return trash_data
 
     def delete_file_folder(self, path: str) -> None:
-        """
-        Delete a file or folder at any depth in the drive hierarchy.
-        Works for both root and subdirectories.
-        """
-        logger.info(f"Attempting to delete path '{path}'.")
 
-        # Normalize and split path
-        clean_path = path.strip("/")
-        if not clean_path:
-            raise ValueError("Cannot delete root directory.")
+        if len(path.strip("/").split("/")) > 0:
+            folder_path = "/" + "/".join(path.strip("/").split("/")[:-1])
+            file_id = path.strip("/").split("/")[-1]
+        else:
+            folder_path = "/"
+            file_id = path.strip("/")
 
-        parts = clean_path.split("/")
-        target_id = parts[-1]
-        parent_path = "/" if len(parts) == 1 else "/" + "/".join(parts[:-1])
-
-        # Get the parent folder object
-        parent_folder = self.get_directory(parent_path)
-        if not isinstance(parent_folder, Folder):
-            raise TypeError(f"Parent path '{parent_path}' is not a valid folder.")
-
-        # If target is directly inside this folder
-        if target_id in parent_folder.contents:
-            deleted_item = parent_folder.contents.pop(target_id)
-            logger.info(
-                f"Deleted '{deleted_item.name}' ({deleted_item.type}) from '{parent_path}'."
-            )
-            self.save()
-            return
-
-        # Otherwise, search recursively
-        def recursive_delete(folder: Folder) -> bool:
-            for key, item in list(folder.contents.items()):
-                if key == target_id:
-                    folder.contents.pop(key)
-                    logger.info(
-                        f"Deleted '{item.name}' ({item.type}) from '{folder.path}'."
-                    )
-                    return True
-                if item.type == "folder":
-                    if recursive_delete(item):
-                        return True
-            return False
-
-        if not recursive_delete(parent_folder):
-            logger.warning(f"Item '{target_id}' not found anywhere under '{parent_path}'.")
-            raise FileNotFoundError(f"Item '{target_id}' not found in '{parent_path}'.")
-
+        folder_data = self.get_directory(folder_path)
+        del folder_data.contents[file_id]
         self.save()
-        logger.info(f"Item '{target_id}' deleted successfully (recursive).")
-
+        logger.info(f"Item at path '{path}' deleted successfully.")
 
     def search_file_folder(self, query: str):
         logger.info(f"Searching for items matching query '{query}'.")
