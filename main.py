@@ -272,19 +272,6 @@ async def trash_file_folder(request: Request):
     return JSONResponse({"status": "ok"})
 
 
-@app.post("/api/deleteFileFolder")
-async def delete_file_folder(request: Request):
-    from utils.directoryHandler import DRIVE_DATA
-
-    data = await request.json()
-
-    if data["password"] != ADMIN_PASSWORD:
-        return JSONResponse({"status": "Invalid password"})
-
-    logger.info(f"deleteFileFolder {data}")
-    DRIVE_DATA.delete_file_folder(data["path"])
-    return JSONResponse({"status": "ok"})
-
 
 @app.post("/api/getFileInfoFromUrl")
 async def getFileInfoFromUrl(request: Request):
@@ -354,3 +341,37 @@ async def getFolderShareAuth(request: Request):
         return JSONResponse({"status": "ok", "auth": auth})
     except:
         return JSONResponse({"status": "not found"})
+
+
+@app.post("/api/deleteFileFolder")
+async def delete_file_folder(request: Request):
+    # import inside function to get the live instance after loadDriveData runs
+    from utils.directoryHandler import DRIVE_DATA
+
+    data = await request.json()
+
+    if data.get("password") != ADMIN_PASSWORD:
+        return JSONResponse({"status": "Invalid password"})
+
+    logger.info(f"deleteFileFolder {data}")
+
+    # guard if drive data isn't initialized yet
+    if DRIVE_DATA is None:
+        logger.error("Delete failed: DRIVE_DATA is not initialized.")
+        return JSONResponse({"status": "error", "detail": "Drive data not initialized"})
+
+    try:
+        # Accept either path or id
+        DRIVE_DATA.delete_file_folder(data["path"])
+        DRIVE_DATA.save()
+        logger.info(f"Deleted: {data['path']}")
+        return JSONResponse({"status": "ok"})
+    except KeyError as e:
+        logger.warning(f"Delete failed: {e}")
+        return JSONResponse({"status": "error", "detail": str(e)})
+    except AttributeError as e:
+        logger.error(f"Delete failed (attr error): {e}")
+        return JSONResponse({"status": "error", "detail": "Internal structure mismatch"})
+    except Exception as e:
+        logger.exception("Unexpected delete error")
+        return JSONResponse({"status": "error", "detail": "Unexpected internal error"})
