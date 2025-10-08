@@ -525,3 +525,137 @@
     background-color: #b9b9b9;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+
+
+
+
+
+
+
+/* Mobile Responsive Start */
+@media screen and (max-width: 768px) {
+    .container {
+        display: block;
+    }
+
+    /* Sidebar collapses */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px 15px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+.directory .td-align span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* show max 2 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+    .sidebar-header {
+        width: 100%;
+        justify-content: start;
+        margin-bottom: 10px;
+    }
+
+    .sidebar .new-button {
+        flex: 1 1 100%;
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+
+    .sidebar-menu {
+        flex: 1 1 100%;
+        flex-direction: row;
+        justify-content: start;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .sidebar-menu a {
+        flex: 1 1 auto;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Main content adjustments */
+    .main-content {
+        padding: 10px;
+    }
+
+    .main-content .header {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-bar {
+        padding: 8px 15px;
+    }
+
+    .directory {
+        padding: 10px;
+        margin-top: 15px;
+        overflow-x: auto;
+    }
+
+    .directory table {
+        min-width: 600px; /* make table scrollable */
+    }
+
+    .directory table tr th,
+    .directory table tr td {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+
+    /* Floating Delete Icon on mobile */
+    .delete-icon-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 480px) {
+    .sidebar-header img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .sidebar-header span {
+        font-size: 1rem;
+    }
+
+    .new-upload {
+        width: 200px;
+    }
+
+    .create-new-folder, .file-uploader {
+        width: 90%;
+    }
+
+    .search-bar input {
+        font-size: 0.9rem;
+    }
+
+    .directory table {
+        min-width: 400px;
+    }
+
+    .directory table tr th,
+    .directory table tr td {
+        font-size: 0.8rem;
+    }
+}
+/* Mobile Responsive End */
+
