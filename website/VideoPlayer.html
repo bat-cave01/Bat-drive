@@ -117,6 +117,20 @@
       };
     }
 
+    // Auto landscape on fullscreen
+    player.on('enterfullscreen', () => {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    });
+    
+    player.on('exitfullscreen', () => {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    });
+
+
     function copyTextToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => alert('Link copied!'))
         .catch(() => alert('Failed to copy link'));
