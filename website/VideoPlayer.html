@@ -1,202 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stream Player</title>
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-  <style>
-    html, body { margin: 0; padding: 0; background: #000; font-family: Arial, sans-serif; }
-    :root { --plyr-color-main: #e50914; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Player</title>
 
-    /* File Name Header */
-    #fileNameBox {
-      color: white;
-      padding: 12px 15px;
-      font-size: 18px;
-      font-weight: 500;
-      margin: 0;
-      background: #111;
-      border-bottom: 1px solid #222;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
+    <!-- Plyr CSS -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
-    .player-container {
-      width: 100%;
-      height: 80vh;
-      background: #000;
-    }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
 
-    #stream-media { width: 100%; height: 100%; background: #000; }
+        #fileNameBox {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
 
-    .plyr, .plyr__video-wrapper { height: 100%; }
+        .player-wrapper {
+            width: 90%;
+            max-width: 900px;
+        }
 
-    .plyr__video-wrapper .plyr-download-button,
-    .plyr__video-wrapper .plyr-share-button {
-      position: absolute;
-      left: 10px;
-      width: 30px;
-      height: 30px;
-      background-color: rgba(0,0,0,0.7);
-      border-radius: 50%;
-      text-align: center;
-      line-height: 30px;
-      color: white;
-      z-index: 10;
-      cursor: pointer;
-    }
-
-    .plyr-download-button { top: 10px; }
-    .plyr-share-button { top: 50px; }
-
-    .plyr-download-button:hover,
-    .plyr-share-button:hover {
-      background-color: rgba(255,255,255,0.7);
-      color: black;
-    }
-
-    .plyr-download-button:before {
-      font-family: "Font Awesome 5 Free";
-      content: "\f019";
-      font-weight: bold;
-    }
-
-    .plyr-share-button:before {
-      font-family: "Font Awesome 5 Free";
-      content: "\f064";
-      font-weight: bold;
-    }
-
-    .buttons-container {
-      margin: 20px auto;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      max-width: 800px;
-      padding-bottom: 30px;
-    }
-
-    .copy-button, .download-button {
-      background: #e50914;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      text-decoration: none;
-      transition: 0.25s;
-    }
-
-    .copy-button:hover,
-    .download-button:hover {
-      background: #b00610;
-    }
-  </style>
+        video {
+            width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
+
 <body>
+    <!-- File name above player -->
+    <div id="fileNameBox">Loading...</div>
 
-  <!-- FILE NAME HEADER -->
-  <h2 id="fileNameBox">Loading...</h2>
+    <div class="player-wrapper">
+        <video id="player" controls crossorigin playsinline>
+            <source id="player-source" src="" type="video/mp4">
+            Your browser does not support HTML5 video.
+        </video>
+    </div>
 
-  <div class="player-container">
-    <video id="stream-media" controls preload="auto" playsinline>
-      <source src="" type="video/mp4">
-    </video>
-  </div>
+    <!-- Plyr JS -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
-  <div class="buttons-container">
-    <button class="copy-button" onclick="copyStreamUrl()">Copy Stream URL</button>
-    <button class="copy-button" onclick="copyDownloadUrl()">Copy Download URL</button>
-    <a id="downloadBtn" class="download-button" href="" download>Download Video</a>
-  </div>
+    <script>
+        // Initialize Plyr
+        const player = new Plyr('#player');
 
-  <script>
-    // Get the media URL from query params
-    const mediaLink = new URL(window.location.href).searchParams.get("url");
+        // Get URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const mediaLink = params.get('path'); // your file ID or path
+        const fileName = params.get('name') || 'Unknown File';
 
-    // Extract file name from URL
-    function getFileName(url) {
-      try { return decodeURIComponent(url.split("/").pop().split("?")[0]) || "Video"; }
-      catch { return "Video"; }
-    }
+        // Set filename above player
+        const fileNameBox = document.getElementById('fileNameBox');
+        fileNameBox.innerText = fileName;
 
-    const fileName = mediaLink ? getFileName(mediaLink) : "Video";
+        // Set HTML title
+        document.title = fileName + ' - Stream Player';
 
-    // Set file name above player
-    document.getElementById("fileNameBox").innerText = fileName;
-
-    // Set HTML title
-    document.title = fileName + " - Stream Player";
-
-    // Initialize Plyr
-    const player = new Plyr('#stream-media', {
-      controls: [
-        'play-large','rewind','play','fast-forward','progress',
-        'current-time','mute','settings','pip','fullscreen'
-      ],
-      settings: ['speed','loop'],
-      speed: { selected: 1, options: [0.25,0.5,0.75,1,1.25,1.5,1.75,2] }
-    });
-
-    const videoSource = document.querySelector('#stream-media source');
-    const downloadBtn = document.getElementById("downloadBtn");
-
-    if (mediaLink) {
-      videoSource.src = mediaLink;
-
-      player.source = {
-        type: 'video',
-        sources: [{ src: mediaLink, type: 'video/mp4' }]
-      };
-
-      downloadBtn.href = mediaLink;
-
-      // Download button inside player
-      const db = document.createElement("div");
-      db.className = "plyr-download-button";
-      db.onclick = () => {
-        const a = document.createElement("a");
-        a.href = mediaLink;
-        a.download = fileName;
-        a.click();
-      };
-      player.elements.container.querySelector('.plyr__video-wrapper').appendChild(db);
-
-      // Share button inside player
-      const sb = document.createElement("div");
-      sb.className = "plyr-share-button";
-      sb.onclick = () => {
-        navigator.clipboard.writeText(window.location.href)
-          .then(() => alert("Link Copied!"));
-      };
-      player.elements.container.querySelector('.plyr__video-wrapper').appendChild(sb);
-
-      // Hide buttons in fullscreen
-      player.on("enterfullscreen", () => { db.style.display = "none"; sb.style.display = "none"; });
-      player.on("exitfullscreen", () => { db.style.display = "block"; sb.style.display = "block"; });
-    }
-
-    function copyStreamUrl() {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => alert("Stream link copied!"));
-    }
-
-    function copyDownloadUrl() {
-      navigator.clipboard.writeText(mediaLink)
-        .then(() => alert("Download link copied!"));
-    }
-
-    // Auto screen rotation on fullscreen
-    document.addEventListener("fullscreenchange", () => {
-      if (document.fullscreenElement) screen.orientation.lock("landscape").catch(()=>{});
-      else screen.orientation.lock("portrait").catch(()=>{});
-    });
-  </script>
+        // Set video src
+        const source = document.getElementById('player-source');
+        source.src = mediaLink; // use your actual video URL
+        player.reload(); // reload the player after changing source
+    </script>
 </body>
 </html>
