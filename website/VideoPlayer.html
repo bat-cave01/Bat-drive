@@ -1,28 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Stream Player</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>Stream Player</title>
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      font-family: Arial, sans-serif;
-    }
+    html, body { margin: 0; padding: 0; background: #000; font-family: Arial, sans-serif; }
+    :root { --plyr-color-main: #e50914; }
 
-    :root {
-      --plyr-color-main: #e50914;
-    }
-
-    /* FILE NAME BOX */
+    /* File Name Header */
     #fileNameBox {
       color: white;
       padding: 12px 15px;
@@ -42,15 +31,9 @@
       background: #000;
     }
 
-    #stream-media {
-      width: 100%;
-      height: 100%;
-      background: #000;
-    }
+    #stream-media { width: 100%; height: 100%; background: #000; }
 
-    .plyr, .plyr__video-wrapper {
-      height: 100%;
-    }
+    .plyr, .plyr__video-wrapper { height: 100%; }
 
     .plyr__video-wrapper .plyr-download-button,
     .plyr__video-wrapper .plyr-share-button {
@@ -116,10 +99,9 @@
     }
   </style>
 </head>
-
 <body>
 
-  <!-- FILE NAME BAR -->
+  <!-- FILE NAME HEADER -->
   <h2 id="fileNameBox">Loading...</h2>
 
   <div class="player-container">
@@ -135,25 +117,24 @@
   </div>
 
   <script>
+    // Get the media URL from query params
     const mediaLink = new URL(window.location.href).searchParams.get("url");
 
-    // EXTRACT FILE NAME
+    // Extract file name from URL
     function getFileName(url) {
-      try {
-        return decodeURIComponent(url.split("/").pop().split("?")[0]) || "Video";
-      } catch {
-        return "Video";
-      }
+      try { return decodeURIComponent(url.split("/").pop().split("?")[0]) || "Video"; }
+      catch { return "Video"; }
     }
 
     const fileName = mediaLink ? getFileName(mediaLink) : "Video";
 
-    // SET FILE NAME ABOVE PLAYER
+    // Set file name above player
     document.getElementById("fileNameBox").innerText = fileName;
 
-    // SET HTML TITLE
+    // Set HTML title
     document.title = fileName + " - Stream Player";
 
+    // Initialize Plyr
     const player = new Plyr('#stream-media', {
       controls: [
         'play-large','rewind','play','fast-forward','progress',
@@ -176,7 +157,7 @@
 
       downloadBtn.href = mediaLink;
 
-      // DOWNLOAD BUTTON (inside player)
+      // Download button inside player
       const db = document.createElement("div");
       db.className = "plyr-download-button";
       db.onclick = () => {
@@ -187,7 +168,7 @@
       };
       player.elements.container.querySelector('.plyr__video-wrapper').appendChild(db);
 
-      // SHARE BUTTON (inside player)
+      // Share button inside player
       const sb = document.createElement("div");
       sb.className = "plyr-share-button";
       sb.onclick = () => {
@@ -196,16 +177,9 @@
       };
       player.elements.container.querySelector('.plyr__video-wrapper').appendChild(sb);
 
-      // HIDE BUTTONS IN FULLSCREEN
-      player.on("enterfullscreen", () => {
-        db.style.display = "none";
-        sb.style.display = "none";
-      });
-
-      player.on("exitfullscreen", () => {
-        db.style.display = "block";
-        sb.style.display = "block";
-      });
+      // Hide buttons in fullscreen
+      player.on("enterfullscreen", () => { db.style.display = "none"; sb.style.display = "none"; });
+      player.on("exitfullscreen", () => { db.style.display = "block"; sb.style.display = "block"; });
     }
 
     function copyStreamUrl() {
@@ -218,15 +192,11 @@
         .then(() => alert("Download link copied!"));
     }
 
-    // AUTO SCREEN ROTATION
+    // Auto screen rotation on fullscreen
     document.addEventListener("fullscreenchange", () => {
-      if (document.fullscreenElement) {
-        screen.orientation.lock("landscape").catch(() => {});
-      } else {
-        screen.orientation.lock("portrait").catch(() => {});
-      }
+      if (document.fullscreenElement) screen.orientation.lock("landscape").catch(()=>{});
+      else screen.orientation.lock("portrait").catch(()=>{});
     });
   </script>
-
 </body>
 </html>
