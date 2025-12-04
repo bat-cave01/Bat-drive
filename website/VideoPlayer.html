@@ -22,10 +22,23 @@
       --plyr-color-main: #e50914;
     }
 
-    /* Player wrapper with fixed height */
+    /* FILE NAME BOX */
+    #fileNameBox {
+      color: white;
+      padding: 12px 15px;
+      font-size: 18px;
+      font-weight: 500;
+      margin: 0;
+      background: #111;
+      border-bottom: 1px solid #222;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
     .player-container {
       width: 100%;
-      height: 80vh;      /* adjustable */
+      height: 80vh;
       background: #000;
     }
 
@@ -39,7 +52,6 @@
       height: 100%;
     }
 
-    /* Floating buttons inside player */
     .plyr__video-wrapper .plyr-download-button,
     .plyr__video-wrapper .plyr-share-button {
       position: absolute;
@@ -54,6 +66,7 @@
       z-index: 10;
       cursor: pointer;
     }
+
     .plyr-download-button { top: 10px; }
     .plyr-share-button { top: 50px; }
 
@@ -68,13 +81,13 @@
       content: "\f019";
       font-weight: bold;
     }
+
     .plyr-share-button:before {
       font-family: "Font Awesome 5 Free";
       content: "\f064";
       font-weight: bold;
     }
 
-    /* Bottom buttons BELOW player */
     .buttons-container {
       margin: 20px auto;
       display: flex;
@@ -106,14 +119,15 @@
 
 <body>
 
-  <!-- VIDEO PLAYER -->
+  <!-- FILE NAME BAR -->
+  <h2 id="fileNameBox">Loading...</h2>
+
   <div class="player-container">
     <video id="stream-media" controls preload="auto" playsinline>
       <source src="" type="video/mp4">
     </video>
   </div>
 
-  <!-- BUTTONS BELOW PLAYER -->
   <div class="buttons-container">
     <button class="copy-button" onclick="copyStreamUrl()">Copy Stream URL</button>
     <button class="copy-button" onclick="copyDownloadUrl()">Copy Download URL</button>
@@ -123,8 +137,28 @@
   <script>
     const mediaLink = new URL(window.location.href).searchParams.get("url");
 
+    // EXTRACT FILE NAME
+    function getFileName(url) {
+      try {
+        return decodeURIComponent(url.split("/").pop().split("?")[0]) || "Video";
+      } catch {
+        return "Video";
+      }
+    }
+
+    const fileName = mediaLink ? getFileName(mediaLink) : "Video";
+
+    // SET FILE NAME ABOVE PLAYER
+    document.getElementById("fileNameBox").innerText = fileName;
+
+    // SET HTML TITLE
+    document.title = fileName + " - Stream Player";
+
     const player = new Plyr('#stream-media', {
-      controls: ['play-large','rewind','play','fast-forward','progress','current-time','mute','settings','pip','fullscreen'],
+      controls: [
+        'play-large','rewind','play','fast-forward','progress',
+        'current-time','mute','settings','pip','fullscreen'
+      ],
       settings: ['speed','loop'],
       speed: { selected: 1, options: [0.25,0.5,0.75,1,1.25,1.5,1.75,2] }
     });
@@ -134,51 +168,64 @@
 
     if (mediaLink) {
       videoSource.src = mediaLink;
+
       player.source = {
         type: 'video',
         sources: [{ src: mediaLink, type: 'video/mp4' }]
       };
+
       downloadBtn.href = mediaLink;
 
-      /* Floating Download button */
+      // DOWNLOAD BUTTON (inside player)
       const db = document.createElement("div");
       db.className = "plyr-download-button";
       db.onclick = () => {
         const a = document.createElement("a");
         a.href = mediaLink;
-        a.download = "";
+        a.download = fileName;
         a.click();
       };
       player.elements.container.querySelector('.plyr__video-wrapper').appendChild(db);
 
-      /* Floating Share button */
+      // SHARE BUTTON (inside player)
       const sb = document.createElement("div");
       sb.className = "plyr-share-button";
       sb.onclick = () => {
-        const link = window.location.href;
-        navigator.clipboard.writeText(link).then(() => alert("Link Copied!"));
+        navigator.clipboard.writeText(window.location.href)
+          .then(() => alert("Link Copied!"));
       };
       player.elements.container.querySelector('.plyr__video-wrapper').appendChild(sb);
 
+      // HIDE BUTTONS IN FULLSCREEN
       player.on("enterfullscreen", () => {
         db.style.display = "none";
         sb.style.display = "none";
       });
+
       player.on("exitfullscreen", () => {
         db.style.display = "block";
         sb.style.display = "block";
       });
     }
 
-    // Copy helpers
     function copyStreamUrl() {
       navigator.clipboard.writeText(window.location.href)
         .then(() => alert("Stream link copied!"));
     }
+
     function copyDownloadUrl() {
       navigator.clipboard.writeText(mediaLink)
         .then(() => alert("Download link copied!"));
     }
+
+    // AUTO SCREEN ROTATION
+    document.addEventListener("fullscreenchange", () => {
+      if (document.fullscreenElement) {
+        screen.orientation.lock("landscape").catch(() => {});
+      } else {
+        screen.orientation.lock("portrait").catch(() => {});
+      }
+    });
   </script>
 
 </body>
